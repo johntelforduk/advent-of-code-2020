@@ -1,2 +1,2 @@
-# advent-of-code-2020
-Solutions to Advent Of Code 2020 puzzles.
+# Advent of Code 2020
+Solutions to [Advent of Code 2020](https://adventofcode.com/2020) puzzles.
