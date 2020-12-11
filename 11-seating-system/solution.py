@@ -7,9 +7,9 @@ VERBOSE = ('-v' in sys.argv)
 filename = sys.argv[1]
 
 
-def dump(l: list):
+def dump(m: list):
     """Print the contents of parm list to stdout."""
-    for line in l:
+    for line in m:
         print(line)
     print()
 
@@ -36,7 +36,41 @@ def adjacent(m: list, x, y) -> int:
     return adj
 
 
-def tick(m: list) -> list:
+def see(m: list, x, y) -> int:
+    """Return count of how many occupied seats can be seen when looking out from given seat position."""
+    seen = 0
+
+    # (dx, dy) is the current direction of gaze.
+    for dx, dy in [(-1, -1), (0, -1), (1, -1),
+                   (-1, 0),           (1, 0),
+                   (-1, 1),  (0, 1),  (1, 1)]:
+        check_x, check_y = x, y
+        found = 'None'
+
+        while found == 'None':
+            # Continue looking in current gaze direction.
+            check_x += dx
+            check_y += dy
+
+#            print(check_x, check_y)
+
+            # Out of bounds checks.
+            if check_x == -1 or check_y == -1 or check_y == len(m):
+                found = 'Out'
+            elif check_x == len(m[check_y]):
+                found = 'Out'
+
+            # Check if found either an occupied or empty seat.
+            elif m[check_y][check_x] in ['#', 'L']:
+                found = m[check_y][check_x]
+
+        if found == '#':
+            seen += 1
+
+    return seen
+
+
+def p1_tick(m: list) -> list:
     """For parm map, return next iteration of map."""
     nm = []                     # New map, at end of this tick.
     y = 0
@@ -67,6 +101,37 @@ def tick(m: list) -> list:
     return nm
 
 
+def p2_tick(m: list) -> list:
+    """For parm map, return next iteration of map."""
+    nm = []                     # New map, at end of this tick.
+    y = 0
+
+    for r in m:                 # Rows.
+        x = 0
+        nr = ''                 # New row, starts as blank string.
+        for c in r:             # Columns.
+            # "If a seat is empty (L) and there are no occupied seats adjacent to it, the seat becomes occupied."
+            if c == 'L' and see(m, x, y) == 0:
+                nr += '#'
+
+            # "... it now takes five or more visible occupied seats for an occupied seat to become empty."
+            elif c == '#' and see(m, x, y) >= 5:
+                nr += 'L'
+
+            # "Otherwise, the seat's state does not change."
+            else:
+                nr += c
+
+            x += 1
+        nm.append(nr)
+
+        # Start a new row
+        y += 1
+
+    return nm
+
+
+
 def count_occupied(m: list) -> int:
     """Return how many seats are occupied in parameter map."""
     count = 0
@@ -80,22 +145,38 @@ def count_occupied(m: list) -> int:
 def main():
     f = open(filename)
     whole_text = (f.read())
-    plan = whole_text.split()                    # Split string by any whitespace.
+    p1_plan = whole_text.split()                    # Split string by any whitespace.
+    p2_plan = p1_plan.copy()
 
     if VERBOSE:
-        print('plan', plan)
-        dump(plan)
+        print('p1_plan', p1_plan)
+        dump(p1_plan)
 
     prev = []
 
-    while prev != plan:
-        prev = plan.copy()
-        plan = tick(plan)
+    while prev != p1_plan:
+        prev = p1_plan.copy()
+        p1_plan = p1_tick(p1_plan)
 
         if VERBOSE:
-            dump(plan)
+            dump(p1_plan)
 
-    print('Part 1:', count_occupied(plan))
+    print('Part 1:', count_occupied(p1_plan))
+
+    if VERBOSE:
+        print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+        dump(p2_plan)
+
+    prev = []
+
+    while prev != p2_plan:
+        prev = p2_plan.copy()
+        p2_plan = p2_tick(p2_plan)
+
+        if VERBOSE:
+            dump(p2_plan)
+
+    print('Part 2:', count_occupied(p2_plan))
 
 
 if __name__ == "__main__":

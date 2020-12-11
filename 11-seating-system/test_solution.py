@@ -34,6 +34,31 @@ class TestFunctions(unittest.TestCase):
 
         self.assertEqual(count_occupied(m), 2)
 
+        m1 = ['.......#.',
+              '...#.....',
+              '.#.......',
+              '.........',
+              '..#L....#',
+              '....#....',
+              '.........',
+              '#........',
+              '...#.....']
+        self.assertEqual(see(m1, 3, 4), 8)
+
+        m2 = ['.............',
+              '.L.L.#.#.#.#.',
+              '.............']
+        self.assertEqual(see(m2, 1, 1), 0)
+
+        m3 = ['.##.##.',
+              '#.#.#.#',
+              '##...##',
+              '...L...',
+              '##...##',
+              '#.#.#.#',
+              '.##.##.']
+        self.assertEqual(see(m3, 3, 3), 0)
+
 
 if __name__ == '__main__':
     unittest.main()
