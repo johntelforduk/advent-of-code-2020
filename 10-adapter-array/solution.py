@@ -41,6 +41,16 @@ for a in sorted(nl):
     # The number of ways to get to current joltage = ways to get to 1 jolt less than this joltage
     #                                                + ways to get to 2 jolts less than this joltage
     #                                                + ways to get to 3 jolts less than this joltage
+    #
+    # Here is a worked example for "small.txt",
+    # 1   4   5   6   7   10   11   12   15   16   19
+    # 1   1   1   1   1    4    4    4    8    8    8
+    #             +   +              +
+    #             1   1              4
+    #             =   +              =
+    #             2   2              8
+    #                 =
+    #                 4
     ways[a] = ways.get(a - 1, 0) + ways.get(a - 2, 0) + ways.get(a - 3, 0)
 
 if VERBOSE:
