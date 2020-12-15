@@ -12,7 +12,7 @@ def lcm(a: int , b: int) -> int:
 
 
 def get_lcm_for(your_list: list) -> int:
-    """Returns the least common """
+    """Returns the least common multiple for parm list of numbers."""
     return reduce(lambda x, y: lcm(x, y), your_list)
 
 
