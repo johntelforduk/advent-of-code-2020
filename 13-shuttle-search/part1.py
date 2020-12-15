@@ -1,4 +1,4 @@
-# Solution to day 13 of AOC 2020, Shuttle Search.
+# Solution to part 1 of day 13 of AOC 2020, Shuttle Search.
 # https://adventofcode.com/2020/day/13
 
 import sys
