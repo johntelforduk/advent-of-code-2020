@@ -47,6 +47,39 @@ def apply_mask(binary: str, mask: str) -> str:
     return result
 
 
+def apply_new_mask(binary: str, mask: str) -> str:
+    """Apply the parm mask to the parm binary number, according to rules in Part 2.
+        If the bitmask bit is 0, the corresponding memory address bit is unchanged.
+        If the bitmask bit is 1, the corresponding memory address bit is overwritten with 1.
+        If the bitmask bit is X, the corresponding memory address bit is floating."""
+    result = ''
+
+    for place in range(36):
+        if mask[place] == '0':
+            result += binary[place]
+        else:
+            result += mask[place]
+    return result
+
+
+def decoder(address: str) -> list:
+    """For a parm address (that may contain floating bits), return the list of decoded addresses (floating bits
+    expanded out to their options."""
+    if 'X' not in address:                      # Base case,
+        return [address]                        # Return list with a single address in it.
+
+    # Find the first 'X' in the list.
+    first = address.find('X')
+
+    before = address[:first]
+    after = address[(first + 1):]
+
+    # Incorporates this list flattener,
+    #     flat_list = [item for sublist in t for item in sublist]
+    return [item for sublist in [decoder(before + '0' + after),
+            decoder(before + '1' + after)] for item in sublist]
+
+
 def main():
     f = open(filename)
     whole_text = (f.read())
@@ -78,7 +111,47 @@ def main():
     for address in memory:
         total += bin_to_dec(memory[address])
 
-    print('part1:', total)
+    print('Part 1:', total)
+
+    # ----------------------------------------------------------------------------------------
+
+    # k: v, where k is the memory address, and v is the value stored in it.
+    memory = {}
+    current_mask = ''
+
+    for line in lines:
+        if VERBOSE:
+            print('line:', line)
+
+        target, source = line.split(' = ')
+
+        if target == 'mask':
+            current_mask = source
+            if VERBOSE:
+                print('current_mask', current_mask)
+
+        else:
+            address = target.replace('mem[', '').replace(']', '')
+
+            masked_address = apply_new_mask(binary=dec_to_bin(address), mask=current_mask)
+
+            if VERBOSE:
+                print('masked_address', masked_address)
+
+            for each_address in decoder(address=masked_address):
+
+                if VERBOSE:
+                    print('each_address, source:', each_address, source)
+
+                memory[each_address] = int(source)
+
+    # "What is the sum of all values left in memory after it completes?"
+    total = 0
+
+    for address in memory:
+        total += memory[address]
+
+    print('Part 2:', total)
 
 
 if __name__ == "__main__":
