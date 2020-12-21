@@ -3,4 +3,6 @@ Solutions to [Advent of Code 2020](https://adventofcode.com/2020) puzzles.
 #### Installation
 ```
 pip install pytest
+pip install matplotlib
 ```
+For details, see `requirements.txt`.

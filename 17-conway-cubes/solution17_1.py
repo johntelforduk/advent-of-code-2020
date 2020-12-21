@@ -3,6 +3,11 @@
 
 import sys
 
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import numpy as np
+
+
 VERBOSE = ('-v' in sys.argv)
 
 
@@ -61,6 +66,34 @@ class Pocket:
                 print()
             print()
 
+    def plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Vertices of a cube.
+        # ax.scatter3D(v[:, 0], v[:, 1], v[:, 2])
+        for x, y, z in self.active_cubes:
+            v = np.array([[x, y, z],     [x + 1, y, z],     [x + 1, y + 1, z],     [x, y + 1, z],
+                          [x, y, z + 1], [x + 1, y, z + 1], [x + 1, y + 1, z + 1], [x, y + 1, z + 1]])
+
+            ax.scatter3D(v[:, 0], v[:, 0], v[:, 0], s=0)  # Needed to set the bounds of the plotting space.
+
+            faces = [[v[0], v[1], v[2], v[3]],
+                     [v[4], v[5], v[6], v[7]],
+                     [v[1], v[5], v[6], v[2]],
+                     [v[0], v[4], v[7], v[3]],
+                     [v[3], v[2], v[6], v[7]],
+                     [v[0], v[1], v[5], v[4]]]
+
+            # Plot faces.
+            ax.add_collection3d(Poly3DCollection(faces,
+                                                 facecolors='orange', linewidths=0.25, edgecolors='r', alpha=1))
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        plt.show()
+
     def cycle(self):
         """Iterate the pocket dimension through a cycle."""
 
@@ -118,6 +151,8 @@ def main():
         this_pocket.print()
 
     print('Part 1:', len(this_pocket.active_cubes))
+
+    this_pocket.plot()
 
 
 if __name__ == "__main__":
