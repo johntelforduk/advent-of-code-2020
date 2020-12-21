@@ -4,7 +4,6 @@
 import sys
 
 VERBOSE = ('-v' in sys.argv)
-filename = sys.argv[1]
 
 
 def evaluate_left_to_right(exp: str) -> int:
@@ -127,6 +126,7 @@ def evaluate_part2(exp: str) -> int:
 
 
 def main():
+    filename = sys.argv[1]
     f = open(filename)
     whole_text = f.read()
     f.close()
