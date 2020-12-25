@@ -4,6 +4,7 @@ Solutions to [Advent of Code 2020](https://adventofcode.com/2020) puzzles.
 ```
 pip install pytest
 pip install matplotlib
+pip install pygame
 ```
 For details, see `requirements.txt`.
 ### Day 17 - Conway Cubes

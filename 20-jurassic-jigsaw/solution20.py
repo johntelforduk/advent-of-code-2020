@@ -3,6 +3,8 @@
 
 import sys
 from math import sqrt
+import pygame
+
 
 VERBOSE = ('-v' in sys.argv)
 
@@ -134,6 +136,128 @@ class Tile:
         return -1  # No matches found.
 
 
+class Image:
+
+    def __init__(self, image: dict):
+
+        self.image_size = int(sqrt(len(image)))      # For example, an image of 3 x 3 tiles has size of 3.
+
+        self.monster = [(18, 0),
+                        (0, 1), (5, 1), (6, 1), (11, 1), (12, 1), (17, 1), (18, 1), (19, 1),
+                        (1, 2), (4, 2), (7, 2), (10, 2), (13, 2), (16, 2)]
+
+        # Define the colors we will use in RGB format.
+        self.BLACK = (0, 0, 0)
+        self.GREEN = (0, 255, 0)
+        self.GREY = (50, 50, 50)
+
+        self.hashes = 0             # Number of non-blank pixels in the final image.
+
+        # "The borders of each tile are not part of the actual image; start by removing them."
+        self.grid = []
+        for tile_y in range(self.image_size):
+            for y in range(1, 9):
+                row = ''
+                for tile_x in range(self.image_size):
+                    tile, variant = image[tile_x, tile_y]
+                    for x in range(1, 9):
+                        pixel = tile.variant_grids[variant][y][x]
+                        row += tile.variant_grids[variant][y][x]
+                        if pixel == '#':
+                            self.hashes += 1
+                self.grid.append(row)
+
+        self.zoom_factor = 800 // len(self.grid)
+        self.screen_size = [self.zoom_factor * len(self.grid), self.zoom_factor * len(self.grid)]
+
+    def search_for_monster(self) -> list:
+        """Search for monsters in the image. Rotate and flip the image in all possible ways.
+           Returns a list of coordinates of monsters."""
+
+        monsters = []
+        search = 'ORRRRHRRRRHVRRRRHRRRR'
+
+        for translation in search:
+            if translation == 'R':
+                self.rotate()
+            elif translation == 'H':
+                self.flip_horizontal()
+            elif translation == 'V':
+                self.flip_vertical()
+
+            for x in range(len(self.grid) - 20):        # 20 is the width of the monster.
+                for y in range(len(self.grid) - 3):     # 3 is height of the monster.
+                    found = True
+                    for dx, dy in self.monster:
+                        if self.grid[y + dy][x + dx] != '#':
+                            found = False
+                    if found:
+                        monsters.append((x, y))
+            if len(monsters) != 0:
+                return monsters
+
+    def render(self, monsters: list):
+        """Render the image to screen."""
+        pygame.init()  # Initialize the game engine.
+
+        target_fps = 1
+
+        screen = pygame.display.set_mode(self.screen_size)
+        clock = pygame.time.Clock()
+
+        pygame.display.set_caption('Jurassic Jigsaw')           # The window title.
+
+        quiting = False
+
+        while not quiting:
+            clock.tick(target_fps)
+
+            screen.fill(self.BLACK)
+
+            for y in range(len(self.grid)):
+                for x in range(len(self.grid)):
+                    if self.grid[y][x] == '#':
+                        pygame.draw.rect(screen, self.GREY, (x * self.zoom_factor, y * self.zoom_factor,
+                                         self.zoom_factor, self.zoom_factor))
+
+            for event in pygame.event.get():  # User did something.
+                if event.type == pygame.QUIT:  # If user clicked close.
+                    quiting = True  # Flag that we are done so we exit this loop, and quit the game
+
+            for x, y in monsters:
+                for dx, dy in self.monster:
+                    pygame.draw.rect(screen, self.GREEN, ((x + dx) * self.zoom_factor, (y + dy) * self.zoom_factor,
+                                                          self.zoom_factor, self.zoom_factor))
+
+            pygame.display.flip()
+        pygame.image.save(screen, "screenshot.jpg")
+        pygame.quit()
+
+    def rotate(self):
+        old = self.grid
+        self.grid = []
+
+        for col in range(len(old)):
+            new_row = ''
+            for row in old[::-1]:  # Go through rows backwards.
+                new_row += row[col]
+            self.grid.append(new_row)
+
+    def flip_horizontal(self):
+        old = self.grid.copy()
+        self.grid = []
+
+        for row in old[::-1]:  # Go through the rows backwards.
+            self.grid.append(row)
+
+    def flip_vertical(self):
+        old = self.grid.copy()
+        self.grid = []
+
+        for row in old:
+            self.grid.append(row[::-1])  # Reverse the characters in each row.
+
+
 def find_next_tile(tiles: [],           # All the tiles that exist.
                    used_tiles: [],      # Tile that have already been placed into the image.
                    image: dict,         # Image that has been made so far.
@@ -242,6 +366,19 @@ def main():
     br, _ = image[(width_length - 1, width_length - 1)]
 
     print('Part 1', tl.tile_id * bl.tile_id * tr.tile_id * br.tile_id)
+
+    # ----------------
+
+    my_image = Image(image)
+    if VERBOSE:
+        print(my_image.grid)
+
+    monsters = my_image.search_for_monster()
+    if VERBOSE:
+        print(monsters)
+    my_image.render(monsters)
+
+    print('Part 2:', my_image.hashes - len(monsters) * len(my_image.monster))
 
 
 if __name__ == "__main__":
