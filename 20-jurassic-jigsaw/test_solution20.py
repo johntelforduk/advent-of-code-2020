@@ -19,20 +19,15 @@ class TestFunctions(unittest.TestCase):
                                              '.....#....',
                                              '.#..##.#..'])
 
-        self.assertEqual(test_tile.find_match(edge='T', pattern='##....#.#.'), 0)   # 0 is 'O'
-        self.assertEqual(test_tile.find_match(edge='T', pattern='.#..##.#..'), 4)   # 4 is 'OH'
+        self.assertEqual(test_tile.top_match(pattern='##....#.#.'), 0)   # 0 is 'O'
+        self.assertEqual(test_tile.top_match(pattern='.#..##.#..'), 4)   # 4 is 'OH'
 
         # This pattern does not exist in this tile.
-        self.assertEqual(test_tile.find_match(edge='T', pattern='##.##.#.#.'), -1)
+        self.assertEqual(test_tile.top_match(pattern='##.##.#.#.'), -1)
 
-        self.assertEqual(test_tile.find_match(edge='B', pattern='.#..##.#..'), 0)   # 0 is 'O'
-        self.assertEqual(test_tile.find_match(edge='B', pattern='...#..##..'), 1)   # 1 is 'OR'
+        self.assertEqual(test_tile.left_match(pattern='#..#..##..'), 0)   # 0 is 'O'
 
-        self.assertEqual(test_tile.find_match(edge='L', pattern='#..#..##..'), 0)   # 0 is 'O'
-
-        self.assertEqual(test_tile.find_match(edge='R', pattern='..##..#...'), 0)   # 0 is 'O'
-        self.assertEqual(test_tile.find_match(edge='R', pattern='##....#.#.'), 1)   # 0 is 'OR'
-        self.assertEqual(test_tile.find_match(edge='R', pattern='#..#..##..'), 6)   # 8 is 'OHRR'
+        self.assertEqual(test_tile.left_and_top_match(left_pattern='#..#..##..', top_pattern='##....#.#.'), 0)
 
 
 if __name__ == '__main__':

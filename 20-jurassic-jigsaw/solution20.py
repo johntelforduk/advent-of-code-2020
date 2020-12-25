@@ -1,4 +1,4 @@
-# Solution to day 20 of AOC 2020, Monster Messages.
+# Solution to part 1 of day 20 of AOC 2020, Monster Messages.
 # https://adventofcode.com/2020/day/20
 
 import sys
@@ -28,7 +28,6 @@ class Tile:
         self.current_variant_grid = grid.copy()
         self.variant_grids = []                     # List of grids for each variant.
 
-
         # List of edges. One item in list for each variant.
         self.top, self.right, self.bottom, self.left = [], [], [], []
 
@@ -45,10 +44,6 @@ class Tile:
 
             for i in range(3):  # Original grid plus 3 rotations, gives 4 orientations.
                 self.rotate_right()
-
-        # Number of selected variant.
-        # 0 = 'O', 1 = 'OR', 2 = 'ORR', 3 = 'ORRR', 4 = 'OH', etc.
-        self.chosen_variant = 0
 
     def snapshot_variant(self):
         """For the current variant of the tile. Take a snapshot of it's name and it's edges."""
@@ -72,16 +67,6 @@ class Tile:
         for row in self.variant_grids[variant_number]:
             print(row)
         print()
-
-    # def print_variant_snaps(self):
-    #     """Print to screen the current variant, and also details about the other variants available."""
-    #     self.print_current_variant()
-    #     print('Current variant:', self.current_variant)
-    #     print('Variants:', self.variant_names)
-    #     print('Top:', self.top)
-    #     print('Bottom:', self.bottom)
-    #     print('Left:', self.left)
-    #     print('Right:', self.right)
 
     def reset_variant(self):
         """Reset the current variant to the original grid for this tile."""
@@ -123,21 +108,6 @@ class Tile:
 
         self.current_variant += 'V'
         self.snapshot_variant()
-
-    def find_match(self, edge: str, pattern: str) -> int:
-        """For the parm edge (eg. 'L'eft, 'R'ight, 'B'ottom, 'T'op), return number of first variant that matches the
-           required pattern.
-           If no match, -1 is returned."""
-        assert edge in ['L', 'R', 'B', 'T']
-
-        for variant_num in range(len(self.variant_names)):
-            if (edge == 'T' and pattern == self.top[variant_num]
-                    or edge == 'B' and pattern == self.bottom[variant_num]
-                    or edge == 'L' and pattern == self.left[variant_num]
-                    or edge == 'R' and pattern == self.right[variant_num]):
-                return variant_num
-
-        return -1  # No matches found.
 
     def left_match(self, pattern: str) -> int:
         """Return number of first variant that has left edge that matches the parm pattern.
@@ -189,7 +159,7 @@ def find_next_tile(tiles: [],           # All the tiles that exist.
                 tt_bottom_edge = tt.bottom[tt_variant]
 
             if left_check_needed and top_check_needed:
-                nt_variant = nt.left_and_bottom_match(left_pattenr=lt_right_edge, top_pattern=tt_bottom_edge)
+                nt_variant = nt.left_and_top_match(left_pattern=lt_right_edge, top_pattern=tt_bottom_edge)
 
             elif left_check_needed:
                 # Try to find a left edge in candidate new tile that matches right edge of tile to the left.
@@ -220,72 +190,58 @@ def main():
 
     tiles = []
 
-    for tile in whole_text.split('\n\n'):  # Each tile is separated from neighbor by blank line.
+    for tile in whole_text.split('\n\n'):               # Each tile is separated from neighbor by blank line.
         tile_rows = tile.split('\n')
-        tile_id = int(tile_rows[0].replace('Tile ', '').replace(':', ''))  # Remove the cruft from tile id row.
-        tile_rows.pop(0)  # Remove first item from rows (it contains the title ID).
+        tile_id = int(tile_rows[0].replace('Tile ', '').replace(':', ''))   # Remove the cruft from tile id row.
+        tile_rows.pop(0)                                # Remove first item from rows (it contains the title ID).
 
         new_tile = Tile(tile_id, tile_rows)
         tiles.append(new_tile)
 
-    width_length = int(sqrt(len(tiles)))            # Dimensions of the image.
+    width_length = int(sqrt(len(tiles)))                # Dimensions of the image.
     if VERBOSE:
         print('width_height:', width_length)
 
     image = {}
-#    found_tl = False            # Have we found a top-left tile that can seed a whole image?
-
 
     # Try every variant of every tile in top-left corner.
-    for tl in tiles:                           # 'tl_' means top-left.
+    for tl in tiles:                                    # 'tl_' means top-left.
         for tl_variant in range(len(tl.variant_names)):
             image = {(0, 0): (tl, tl_variant)}
-            used_tiles = [tl]                      # Tiles already used in this image.
+            used_tiles = [tl]                           # Tiles already used in this image.
 
             failure = False
-            x, y = 1, 0                             # Coordinates of next tile to attempt to add to image.
+            x, y = 1, 0                                 # Coordinates of next tile to attempt to add to image.
 
-            nt, nt_variant = find_next_tile(tiles, used_tiles, image, x, y)
+            while not failure and y < width_length:
+                nt, nt_variant = find_next_tile(tiles, used_tiles, image, x, y)
 
-            if nt is not None:
-                image[(x, y)] = (nt, nt_variant)
-                used_tiles.append(nt)
-            else:                                   # Failed to find a next tile that fits.
-                failure = True
+                if nt is not None:
+                    image[(x, y)] = (nt, nt_variant)
+                    used_tiles.append(nt)
 
-            if len(image) == 2:
+                    x += 1
+                    if x == width_length:
+                        x = 0
+                        y += 1
+                else:                                   # Failed to find a next tile that fits.
+                    failure = True
+
+            if len(image) == width_length ** 2:
                 break
-        if len(image) == 2:
+        if len(image) == width_length ** 2:
             break
 
-            # if not found_tl:
-            #     # Seed the top-left corner of the image with a tile.
-            #     image = {(0, 0): (tl, tl_variant)}
-            #     used_tiles = [tl]                      # Tiles already used in this image.
-            #
-            #     x, y = 1, 0
-            #
-            #     # For the top-left seed that we are trying, have we found a next tile that fits?
-            #     found_nt = False
-            #
-                # for nt in tiles:
-                #     if nt not in used_tiles:
-                #         if x != 0:
-                #             lt, lt_variant = image[(x - 1, y)]      # tl = tile to the left.
-                #             lt_right_edge = lt.right[lt_variant]
-                #
-                #             # Try to find a left edge in candidate new tile that matches right edge of tile to the left.
-                #             nt_variant = nt.find_match(edge='L', pattern=lt_right_edge)
-                #             if nt_variant != -1:               # Not -1 means a matching edge was found.
-                #
-                #                 image[(x, y)] = (nt, nt_variant)
-                #                 used_tiles.append(nt)
-                #
-                #                 found_nt = True
-                #                 found_tl = True
-                #                 break
-
     print_image(image)
+
+    # _ used, because each item in the dict is (tile, variant), and we don't need the variant number for
+    # this calculation.
+    tl, _ = image[(0, 0)]
+    bl, _ = image[(0, width_length - 1)]
+    tr, _ = image[(width_length - 1, 0)]
+    br, _ = image[(width_length - 1, width_length - 1)]
+
+    print('Part 1', tl.tile_id * bl.tile_id * tr.tile_id * br.tile_id)
 
 
 if __name__ == "__main__":
