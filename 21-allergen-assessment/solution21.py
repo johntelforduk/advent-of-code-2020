@@ -151,6 +151,26 @@ def main():
 
     print('Part 1:', count_non_allergen_ingredients(whole_text, allergen_ingredients))
 
+    # ----------------
+
+    # Turn allergens dictionary into list of pairs.
+    allergens_list = []
+    for allergen in allergens:
+        ingredient_list_set = allergens[allergen]
+        ingredient = list(ingredient_list_set[0])[0]
+        if VERBOSE:
+            print('allergen, ingredient:', allergen, ingredient)
+        allergens_list.append((allergen, ingredient))
+
+    # Print the ingredients out in allergen order.
+    first = True
+    print('Part 2: ', end='')
+    for _, ingredient in sorted(allergens_list):
+        if not first:
+            print(',', end='')
+        print(ingredient, end='')
+        first = False
+
 
 if __name__ == "__main__":
     main()
