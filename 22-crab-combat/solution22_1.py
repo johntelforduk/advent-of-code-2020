@@ -1,4 +1,4 @@
-# Solution to day 22 of AOC 2020, Crab Combat.
+# Solution to part 1 of day 22 of AOC 2020, Crab Combat.
 # https://adventofcode.com/2020/day/22
 
 import sys
