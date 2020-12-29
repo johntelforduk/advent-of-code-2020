@@ -1,4 +1,4 @@
-# Solution to day 23 of AOC 2020, Crab Cups.
+# Solution to part 1 of day 23 of AOC 2020, Crab Cups.
 # https://adventofcode.com/2020/day/23
 
 import sys
@@ -7,28 +7,27 @@ VERBOSE = ('-v' in sys.argv)
 
 
 class Game:
-    def __init__(self, cups: str, moves_left: int):
+    def __init__(self, cups: str):
 
-        self.cups = list(cups)
+        self.cups = [int(cup) for cup in list(cups)]
         self.move_number = 1
-        self.moves_left = moves_left
 
         self.current = self.cups[0]
-        self.destination = ''
+        self.destination = 0
 
-
-    def pick_up_cups(self, num: int) -> str:
-        """Remove the parm number of cups clockwise of the current cup. Return the cups picked up as string."""
+    def pick_up_cups(self, num: int) -> list:
+        """Remove the parm number of cups clockwise of the current cup.
+           Return the cups picked up as list of integers."""
 
         # "The crab picks up the three cups that are immediately clockwise of the current cup.
         # They are removed from the circle; cup spacing is adjusted as necessary to maintain the circle."
 
-        picked = ''
+        picked = []
         for i in range(num):
-            picked += self.pick_up_1_cup()
+            picked.append(self.pick_up_1_cup())
         return picked
 
-    def pick_up_1_cup(self) -> str:
+    def pick_up_1_cup(self) -> int:
         """Remove 1 cup clockwise of the current cup. Return the 1 cup picked up."""
         current_position = self.cups.index(self.current)
         if current_position < len(self.cups) - 1:    # Current cup is not on the end of the list.
@@ -45,15 +44,15 @@ class Game:
 
         candidate = self.current
         while True:
-            candidate = str(int(candidate) - 1)
-            if candidate == '0':
-                candidate = '9'
+            candidate = candidate - 1
+            if candidate == 0:
+                candidate = 9
             if candidate in self.cups:
                 self.destination = candidate
                 return
 
-    def insert_cups(self, inserts: str, insert_after: str):
-        """Insert parm string of cups (in order) after the parm cup."""
+    def insert_cups(self, inserts: list, insert_after: int):
+        """Insert parm list of cups (in order) after the parm cup."""
 
         # "The crab places the cups it just picked up so that they are immediately clockwise of the destination cup.
         # They keep the same order as when they were picked up."
@@ -82,7 +81,7 @@ class Game:
         print('cups: ', end='')
         for cup in self.cups:
             if cup == self.current:
-                print('(' + cup + ') ', end='')
+                print('(' + str(cup) + ') ', end='')
             else:
                 print(cup, end=' ')
         print()
@@ -97,7 +96,7 @@ class Game:
         self.update_destination_cup()
 
         if VERBOSE:
-            print('pick up: ',end='')
+            print('pick up: ', end='')
             for pick in picked_up:
                 print(pick, end=' ')
             print()
@@ -115,20 +114,22 @@ class Game:
         # "Starting after the cup labeled 1, collect the other cups' labels clockwise into a single string with no
         # extra characters."
 
-        self.current = '1'
-        return self.pick_up_cups(8)         # 9 cups in the circle, so all cups except '1' is 8 cups.
+        self.current = 1
+        eight_cups = self.pick_up_cups(8)       # 9 cups in the circle, so all cups except '1' is 8 cups.
+
+        answer = ''
+        for cup in eight_cups:
+            answer += str(cup)
+        return answer
 
 
 def main():
     labeling = sys.argv[1]
-    moves_left = int(sys.argv[2])
+    moves = int(sys.argv[2])
 
-    # if VERBOSE:
-    #     print('labeling, moves_left:', labeling, moves_left)
+    this_game = Game(labeling)
 
-    this_game = Game(labeling, moves_left)
-
-    for move in range(moves_left):
+    for move in range(moves):
         this_game.move()
 
     if VERBOSE:
