@@ -1,6 +1,6 @@
-# Unit tests for day 23 of AOC 2020, Crab Cups.
+# Unit tests for part 1 of day 23 of AOC 2020, Crab Cups.
 
-from solution23_2 import Game
+from solution23_1 import Game
 import unittest
 
 
