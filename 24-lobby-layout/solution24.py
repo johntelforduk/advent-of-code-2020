@@ -10,41 +10,62 @@ VERBOSE = ('-v' in sys.argv)
 
 class Floor:
 
-    def __init__(self):
+    def __init__(self, zoom: int):
 
         # Define the colors we will use in RGB format.
         self.white_tile_colour = (240, 240, 240)
         self.black_tile_colour = (40, 40, 40)
         self.grout_colour = (100, 100, 100)
+        self.text_colour = (255, 0, 0)
 
-        self.zoom = 7                                               # Lower zoom, means more tiles rendered.
+        self.hex_to_cartesian = {'e': (2, 0),
+                                 'w': (-2, 0),
+                                 'se': (1, 2),
+                                 'sw': (-1, 2),
+                                 'ne': (1, -2),
+                                 'nw': (-1, -2)}
+
+        self.zoom = zoom                                            # Lower zoom, means more tiles in the room.
+        self.screen_size = [1100, 800]                              # [width, height]
 
         pygame.init()                                               # Initialize the game engine.
-
-        self.screen_size = [1100, 800]                              # [width, height]
         self.screen = pygame.display.set_mode(self.screen_size)
-
-        self.black_tiles = set()                                    # Each member is pair (x, y).
-
-    def render(self):
-        """Render image of the floor to screen."""
-
+        pygame.font.init()                      # Start the Pygame text rendering system.
+        self.myfont = pygame.font.SysFont('Courier New', 20)
         pygame.display.set_caption('Lobby Layout')                  # The window title.
 
-        self.draw_background()                                      # Cover screen with white tiles.
+        self.black_tiles = set()                                    # Each member is pair (x, y).
+        self.day = 0
 
-        for (x, y) in self.black_tiles:
-            self.draw_tile(x, y, 'B')
+    def art_exhibit(self, days: int):
+        """Render image of the floor to screen. Then follow art exhibit flipping rules for parm number of days."""
 
         quiting = False
-        while not quiting:
+        while not quiting and self.day < days:
             for event in pygame.event.get():  # User did something.
                 if event.type == pygame.QUIT:  # If user clicked close.
                     quiting = True  # Flag that we are done so we exit this loop, and quit the game
-            pygame.display.update()
 
-        pygame.image.save(self.screen, "screenshot.jpg")
+            self.draw_background()  # Cover screen with white tiles.
+
+            for (x, y) in self.black_tiles:
+                self.draw_tile(x, y, 'B')
+
+            caption = 'Day ' + str(self.day) + ': ' + str(len(self.black_tiles)) + ' black tiles'
+            text_surface = self.myfont.render(caption, False, self.text_colour)
+            self.screen.blit(text_surface, (10, 10))
+
+            # self.draw_text(text,
+            #                int(self.config.screen_centre[0] - pixels_per_char * len(text) / 2),
+            #                y,
+            #                self.config.WHITE)
+
+            pygame.display.flip()
+
+            self.iterate()
+
         pygame.quit()
+
 
     def draw_background(self):
         """Tile the floor with default white tiles."""
@@ -52,6 +73,7 @@ class Floor:
             for x in range(- self.screen_size[0] // self.zoom, self.screen_size[0] // self.zoom):
                 self.draw_tile(x * 2, y * 4, 'W')
                 self.draw_tile(1 + x * 2, 2 + y * 4, 'W')
+
 
     def draw_tile(self, x, y, colour: str):
         """Draw a tile on the screen."""
@@ -80,17 +102,10 @@ class Floor:
     def flip(self, directions: list):
         """Follows the parm directions to identify a tile. Then flips that tile, from white to black (or vice versa)."""
 
-        x, y = 0, 0
-
-        hex_to_cartesian = {'e': (2, 0),
-                            'w': (-2, 0),
-                            'se': (1, 2),
-                            'sw': (-1, 2),
-                            'ne': (1, -2),
-                            'nw': (-1, -2)}
+        x, y = 0, 0         # Start at the origin tile position.
 
         for each_step in directions:
-            (dx, dy) = hex_to_cartesian[each_step]
+            (dx, dy) = self.hex_to_cartesian[each_step]
             x += dx
             y += dy
 
@@ -98,6 +113,44 @@ class Floor:
             self.black_tiles.remove((x, y))
         else:
             self.black_tiles.add((x, y))
+
+    def iterate(self):
+        """Do an iteration of the art exhibit rules."""
+
+        # "The rules are applied simultaneously to every tile; put another way, it is first determined which tiles need
+        # to be flipped, then they are all flipped at the same time."
+        prev_black_tiles = self.black_tiles.copy()
+        self.black_tiles = set()
+
+        for range_y in range(- self.screen_size[1] // self.zoom, self.screen_size[1] // self.zoom):
+            for range_x in range(- self.screen_size[0] // self.zoom, self.screen_size[0] // self.zoom):
+                self.iteration_rule(prev_black_tiles, range_x * 2, range_y * 4)
+                self.iteration_rule(prev_black_tiles, 1 + range_x * 2, 2 + range_y * 4)
+
+        self.day += 1
+
+    def iteration_rule(self, previous_black_tiles: set, x, y):
+        """Apply the iteration rule to parm tile position."""
+
+        adjacent = self.count_adjacent_blacks(previous_black_tiles, x, y)
+
+        # "Any black tile with zero or more than 2 black tiles immediately adjacent to it is flipped to white."
+        if (x, y) in previous_black_tiles and not (adjacent == 0 or adjacent > 2):
+            self.black_tiles.add((x, y))
+
+        # "Any white tile with exactly 2 black tiles immediately adjacent to it is flipped to black."
+        if (x, y) not in previous_black_tiles and adjacent == 2:
+            self.black_tiles.add((x, y))
+
+    def count_adjacent_blacks(self, previous_black_tiles: set, x, y) -> int:
+        """Return the number of black tiles that are adjacent to the parm (x, y) tile."""
+
+        # "Here, tiles immediately adjacent means the six tiles directly touching the tile in question."
+        count = 0
+        for (dx, dy) in self.hex_to_cartesian.values():
+            if (x + dx, y + dy) in previous_black_tiles:
+                count += 1
+        return count
 
 
 def text_to_directions(text: str) -> list:
@@ -123,6 +176,7 @@ def text_to_directions(text: str) -> list:
 
 def main():
     filename = sys.argv[1]
+    zoom = int(sys.argv[2])
     f = open(filename)
     whole_text = f.read()
     f.close()
@@ -130,7 +184,7 @@ def main():
     if VERBOSE:
         print('filename:', filename)
 
-    the_floor = Floor()
+    the_floor = Floor(zoom)
 
     for each_instruction in whole_text.split('\n'):
         directions = text_to_directions(each_instruction)
@@ -139,7 +193,14 @@ def main():
     # "After all of the instructions have been followed, how many tiles are left with the black side up?"
     print('Part 1:', len(the_floor.black_tiles))
 
-    the_floor.render()
+    the_floor.art_exhibit(days=100)
+
+    # ---------------
+    # for day in range(100):
+    #     the_floor.iterate()
+    #     the_floor.render(2)
+
+    print('Part 2:', len(the_floor.black_tiles))
 
 
 if __name__ == "__main__":
