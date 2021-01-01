@@ -2,7 +2,7 @@
 # https://adventofcode.com/2020/day/8
 
 import sys
-from console.computer import Computer
+from computer import Computer
 
 VERBOSE = ('-v' in sys.argv)
 filename = sys.argv[1]
