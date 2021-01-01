@@ -220,7 +220,7 @@ def main():
     # "After all of the instructions have been followed, how many tiles are left with the black side up?"
     print('Part 1:', len(the_floor.black_tiles))
 
-    if the_floor.art_exhibit(days=101):
+    if the_floor.art_exhibit(days=100):
         print('Part 2:', len(the_floor.black_tiles))
 
 
