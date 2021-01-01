@@ -45,6 +45,6 @@ Here is a visualisation of part 2.
 ![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/20-jurassic-jigsaw/screenshot.jpg "Jurassic Jigsaw visualisation.")
 
 ### Day 24 - Lobby Layout
-Here is a visualisation of part 1.
+Here is a visualisation of the solution to part 1.
 
-![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/24-lobby-layout/screenshot.jpg "Jurassic Jigsaw visualisation.")
+![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/24-lobby-layout/screenshot_part1.jpg "Jurassic Jigsaw visualisation.")
