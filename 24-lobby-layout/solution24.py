@@ -16,7 +16,8 @@ class Floor:
         self.white_tile_colour = (240, 240, 240)
         self.black_tile_colour = (40, 40, 40)
         self.grout_colour = (100, 100, 100)
-        self.text_colour = (255, 0, 0)
+        self.text_background = (255, 255, 255)
+        self.text_colour = (0, 0, 0)
 
         self.hex_to_cartesian = {'e': (2, 0),
                                  'w': (-2, 0),
@@ -31,14 +32,15 @@ class Floor:
         pygame.init()                                               # Initialize the game engine.
         self.screen = pygame.display.set_mode(self.screen_size)
         pygame.font.init()                      # Start the Pygame text rendering system.
-        self.myfont = pygame.font.SysFont('Courier New', 20)
+        self.myfont = pygame.font.SysFont('Courier New', 30)
         pygame.display.set_caption('Lobby Layout')                  # The window title.
 
         self.black_tiles = set()                                    # Each member is pair (x, y).
         self.day = 0
 
-    def art_exhibit(self, days: int):
-        """Render image of the floor to screen. Then follow art exhibit flipping rules for parm number of days."""
+    def art_exhibit(self, days: int) -> bool:
+        """Render image of the floor to screen. Then follow art exhibit flipping rules for parm number of days.
+           Returns a bool to indicate if the process was quit early."""
 
         quiting = False
         while not quiting and self.day < days:
@@ -51,21 +53,18 @@ class Floor:
             for (x, y) in self.black_tiles:
                 self.draw_tile(x, y, 'B')
 
+            pygame.draw.rect(self.screen, self.text_background, (0, 0, 450, 40))
+
             caption = 'Day ' + str(self.day) + ': ' + str(len(self.black_tiles)) + ' black tiles'
             text_surface = self.myfont.render(caption, False, self.text_colour)
-            self.screen.blit(text_surface, (10, 10))
-
-            # self.draw_text(text,
-            #                int(self.config.screen_centre[0] - pixels_per_char * len(text) / 2),
-            #                y,
-            #                self.config.WHITE)
+            self.screen.blit(text_surface, (5, 5))
 
             pygame.display.flip()
-
             self.iterate()
 
         pygame.quit()
 
+        return not quiting
 
     def draw_background(self):
         """Tile the floor with default white tiles."""
@@ -73,7 +72,6 @@ class Floor:
             for x in range(- self.screen_size[0] // self.zoom, self.screen_size[0] // self.zoom):
                 self.draw_tile(x * 2, y * 4, 'W')
                 self.draw_tile(1 + x * 2, 2 + y * 4, 'W')
-
 
     def draw_tile(self, x, y, colour: str):
         """Draw a tile on the screen."""
@@ -122,10 +120,21 @@ class Floor:
         prev_black_tiles = self.black_tiles.copy()
         self.black_tiles = set()
 
-        for range_y in range(- self.screen_size[1] // self.zoom, self.screen_size[1] // self.zoom):
-            for range_x in range(- self.screen_size[0] // self.zoom, self.screen_size[0] // self.zoom):
-                self.iteration_rule(prev_black_tiles, range_x * 2, range_y * 4)
-                self.iteration_rule(prev_black_tiles, 1 + range_x * 2, 2 + range_y * 4)
+        # Find a set of tiles that need to be checked. It is is every tile that either a black tile already, or
+        # a neighbor of a black tile. That is to say, white tiles that have no black neighbors don't need to be checked.
+
+        check = prev_black_tiles.copy()
+        for (x, y) in prev_black_tiles:
+            for dx, dy in self.hex_to_cartesian.values():
+                check.add((x + dx, y + dy))
+
+        # for range_y in range(- self.screen_size[1] // self.zoom, self.screen_size[1] // self.zoom):
+        #     for range_x in range(- self.screen_size[0] // self.zoom, self.screen_size[0] // self.zoom):
+        #         self.iteration_rule(prev_black_tiles, range_x * 2, range_y * 4)
+        #         self.iteration_rule(prev_black_tiles, 1 + range_x * 2, 2 + range_y * 4)
+
+        for (x, y) in check:
+            self.iteration_rule(prev_black_tiles, x, y)
 
         self.day += 1
 
@@ -193,14 +202,8 @@ def main():
     # "After all of the instructions have been followed, how many tiles are left with the black side up?"
     print('Part 1:', len(the_floor.black_tiles))
 
-    the_floor.art_exhibit(days=100)
-
-    # ---------------
-    # for day in range(100):
-    #     the_floor.iterate()
-    #     the_floor.render(2)
-
-    print('Part 2:', len(the_floor.black_tiles))
+    if the_floor.art_exhibit(days=100):
+        print('Part 2:', len(the_floor.black_tiles))
 
 
 if __name__ == "__main__":
