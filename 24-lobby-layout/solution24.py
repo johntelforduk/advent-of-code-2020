@@ -3,6 +3,7 @@
 
 import sys
 import pygame
+import imageio                          # For making animated GIFs.
 
 
 VERBOSE = ('-v' in sys.argv)
@@ -42,6 +43,8 @@ class Floor:
         """Render image of the floor to screen. Then follow art exhibit flipping rules for parm number of days.
            Returns a bool to indicate if the process was quit early."""
 
+        filenames = []
+
         quiting = False
         while not quiting and self.day < days:
             for event in pygame.event.get():  # User did something.
@@ -60,6 +63,21 @@ class Floor:
             self.screen.blit(text_surface, (5, 5))
 
             pygame.display.flip()
+
+            if self.day in [0, 100]:
+                pygame.image.save(self.screen, 'screenshots/day_' + str(self.day) + '.jpg')
+
+            if self.day <= 10:
+                screenshot_name = 'screenshots/screen' + format(self.day, '02') + '.png'
+                pygame.image.save(self.screen, screenshot_name)
+                filenames.append(screenshot_name)
+
+            if self.day == 10:
+                images = []
+                for filename in filenames:
+                    images.append(imageio.imread(filename))
+                imageio.mimsave('solution_part2.gif', images, fps=1)
+
             self.iterate()
 
         pygame.quit()
@@ -202,7 +220,7 @@ def main():
     # "After all of the instructions have been followed, how many tiles are left with the black side up?"
     print('Part 1:', len(the_floor.black_tiles))
 
-    if the_floor.art_exhibit(days=100):
+    if the_floor.art_exhibit(days=101):
         print('Part 2:', len(the_floor.black_tiles))
 
 

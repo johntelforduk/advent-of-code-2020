@@ -5,6 +5,7 @@ Solutions to [Advent of Code 2020](https://adventofcode.com/2020) puzzles.
 pip install pytest
 pip install matplotlib
 pip install pygame
+pip install imageio
 ```
 For details, see `requirements.txt`.
 ### Day 17 - Conway Cubes
@@ -47,4 +48,8 @@ Here is a visualisation of part 2.
 ### Day 24 - Lobby Layout
 Here is a visualisation of the solution to part 1.
 
-![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/24-lobby-layout/screenshot_part1.jpg "Jurassic Jigsaw visualisation.")
+![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/24-lobby-layout/assets/day_0.jpg "Lobby Layout part 1.")
+
+And here is an animation of the first 10 days of part 2.
+
+![alt text](https://github.com/johntelforduk/advent-of-code-2020/blob/main/24-lobby-layout/assets/first_10_iterations.gif "Lobby Layout part 2.")
